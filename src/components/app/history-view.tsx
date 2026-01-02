@@ -176,7 +176,7 @@ export default function HistoryView() {
                 </div>
             ) : (
                 <Accordion type="single" collapsible className="w-full space-y-4">
-                {sortedates.map((date) => (
+                {sortedDates.map((date) => (
                 <Card key={date} className="shadow-inner bg-background">
                     <AccordionItem value={date} className="border-b-0">
                     <AccordionTrigger className="p-6 text-lg font-medium hover:no-underline">
