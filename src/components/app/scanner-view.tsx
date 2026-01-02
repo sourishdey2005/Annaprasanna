@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, ChangeEvent } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, FileImage, Sparkles, Check } from 'lucide-react';
@@ -17,7 +18,7 @@ function LotusLoader() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 text-center">
       <div className="lotus-loader">
-        <LotusIcon className="h-24 w-24 text-primary" />
+         <Image src="https://res.cloudinary.com/dodhvvewu/image/upload/v1767340219/logo_1_mqba2z.jpg" alt="Annaprasanna Logo" width={96} height={96} className="rounded-full" />
       </div>
       <p className="text-muted-foreground font-medium">Recognizing your meal...</p>
       <p className="text-sm text-muted-foreground/80">"Annaṁ Brahma" - Food is divine.</p>
