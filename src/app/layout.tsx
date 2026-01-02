@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 export const metadata: Metadata = {
   title: 'Annaprasanna',
   description: 'Eat with awareness, balance, and wisdom. A privacy-first Vedic nutrition intelligence app.',
+  icons: {
+    icon: 'https://res.cloudinary.com/dodhvvewu/image/upload/v1767340219/logo_1_mqba2z.jpg',
+  },
 };
 
 export default function RootLayout({
