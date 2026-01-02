@@ -13,6 +13,12 @@ export type Meal = {
   meal_context?: 'Prasadam' | 'Home-cooked' | 'Outside';
   dosha_suggestion?: string;
   time_of_day_wisdom?: string;
+  // New AI features
+  ingredient_breakdown?: string;
+  portion_awareness?: string;
+  seasonal_awareness?: string;
+  cooking_method_insight?: string;
+  cooking_method?: 'Fried' | 'Steamed' | 'Roasted' | 'Raw' | 'Other';
 };
 
 export type Guna = 'Sattvic' | 'Rajasic' | 'Tamasic';

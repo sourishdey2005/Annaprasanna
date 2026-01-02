@@ -35,6 +35,11 @@ const IdentifyFoodFromImageOutputSchema = z.object({
   vedic_tip: z.string().describe('A short spiritual or dietary insight based on the Guna.'),
   dosha_suggestion: z.string().optional().describe('A gentle suggestion based on the food and the user\'s dosha. Only provide if there is a relevant suggestion.'),
   time_of_day_wisdom: z.string().optional().describe('A piece of vedic wisdom based on the time of day. Only provide if there is relevant wisdom (e.g., eating late at night).'),
+  ingredient_breakdown: z.string().optional().describe('A breakdown of the major ingredients and which contributes most to the calories.'),
+  portion_awareness: z.string().optional().describe('A warning if the portion size seems larger than a traditional serving. Frame it constructively.'),
+  seasonal_awareness: z.string().optional().describe('A gentle warning if the food is out of season or has qualities (heating/cooling) that conflict with the current season.'),
+  cooking_method: z.enum(['Fried', 'Steamed', 'Roasted', 'Raw', 'Other']).optional().describe('The primary cooking method detected.'),
+  cooking_method_insight: z.string().optional().describe('An explanation of how the cooking method influences the food\'s Guna.'),
 });
 
 export type IdentifyFoodFromImageOutput = z.infer<typeof IdentifyFoodFromImageOutputSchema>;
@@ -50,6 +55,14 @@ function getTimeOfDayWisdom(timestamp: number) {
     return undefined;
 }
 
+function getCurrentSeason(timestamp: number): string {
+    const month = new Date(timestamp).getMonth() + 1; // 1-12
+    if (month >= 3 && month <= 5) return 'Spring';
+    if (month >= 6 && month <= 8) return 'Summer';
+    if (month >= 9 && month <= 11) return 'Autumn';
+    return 'Winter';
+}
+
 
 export async function identifyFoodFromImage(input: IdentifyFoodFromImageInput): Promise<IdentifyFoodFromImageOutput> {
   return identifyFoodFromImageFlow(input);
@@ -57,9 +70,29 @@ export async function identifyFoodFromImage(input: IdentifyFoodFromImageInput): 
 
 const identifyFoodFromImagePrompt = ai.definePrompt({
   name: 'identifyFoodFromImagePrompt',
-  input: {schema: z.object({imageUri: z.string(), dosha: z.string()})},
+  input: {schema: z.object({imageUri: z.string(), dosha: z.string(), season: z.string()})},
   output: {schema: IdentifyFoodFromImageOutputSchema},
-  prompt: `Act as a Vedic Nutritionist and certified dietician.\nAnalyze the food in this image and respond ONLY in valid JSON.\n\nReturn:\n- food_name (string)\n- calories (number, kcal)\n- protein_g (number)\n- carbs_g (number)\n- fats_g (number)\n- guna (one of: Sattvic, Rajasic, Tamasic)\n- vedic_tip (short spiritual or dietary insight based on the guna)\n- dosha_suggestion (optional, gentle suggestion for the user's dosha: {{{dosha}}})\n\nBe realistic with Indian food portions.\nNo markdown. No extra commentary.\n\nImage: {{media url=imageUri}}`,
+  prompt: `Act as a Vedic Nutritionist and certified dietician.\nAnalyze the food in this image and respond ONLY in valid JSON.\n\nThe user's dosha is {{{dosha}}} and the current season is {{{season}}}.
+
+Return:
+- food_name: string
+- calories: number (kcal)
+- protein_g: number
+- carbs_g: number
+- fats_g: number
+- guna: 'Sattvic' | 'Rajasic' | 'Tamasic'
+- vedic_tip: short spiritual or dietary insight based on the guna
+- dosha_suggestion: optional, gentle suggestion for the user's dosha.
+- ingredient_breakdown: optional, short analysis of major ingredients and which contributes most to calories.
+- portion_awareness: optional, warning if the portion seems large, framed constructively.
+- seasonal_awareness: optional, gentle warning if the food is out of season or conflicts with the current season's qualities (e.g., heating food in summer).
+- cooking_method: 'Fried' | 'Steamed' | 'Roasted' | 'Raw' | 'Other'
+- cooking_method_insight: optional, explanation of how the cooking method influences the food's Guna.
+
+Be realistic with Indian food portions.
+No markdown. No extra commentary.
+
+Image: {{media url=imageUri}}`,
 });
 
 const identifyFoodFromImageFlow = ai.defineFlow(
@@ -69,7 +102,8 @@ const identifyFoodFromImageFlow = ai.defineFlow(
     outputSchema: IdentifyFoodFromImageOutputSchema,
   },
   async input => {
-    const {output} = await identifyFoodFromImagePrompt({imageUri: input.imageUri, dosha: input.dosha});
+    const season = getCurrentSeason(input.timestamp);
+    const {output} = await identifyFoodFromImagePrompt({imageUri: input.imageUri, dosha: input.dosha, season});
     if (!output) {
       throw new Error('Failed to get analysis from AI');
     }

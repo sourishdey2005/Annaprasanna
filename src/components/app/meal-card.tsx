@@ -10,7 +10,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Meal } from '@/lib/types';
-import { Landmark, Home, UtensilsCrossed, Clock, Leaf, Sparkles } from 'lucide-react';
+import { Landmark, Home, UtensilsCrossed, Clock, Leaf, Sparkles, Flame, Droplets, Wind, CookingPot, ScanEye, Snowflake, Scale } from 'lucide-react';
 
 interface MealCardProps {
   meal: Meal;
@@ -39,7 +39,7 @@ function Stat({ label, value, unit }: { label: string; value: number; unit: stri
   );
 }
 
-function WisdomPill({ icon, title, text }: { icon: React.ReactNode, title: string, text: string }) {
+function WisdomPill({ icon, title, text }: { icon: React.ReactNode, title: string, text: string | undefined | null }) {
     if (!text) return null;
     return (
         <div className="flex items-start gap-4 rounded-lg border bg-background p-4">
@@ -50,6 +50,14 @@ function WisdomPill({ icon, title, text }: { icon: React.ReactNode, title: strin
             </div>
         </div>
     );
+}
+
+const COOKING_METHOD_ICONS = {
+    Fried: <Flame className="h-4 w-4" />,
+    Steamed: <Droplets className="h-4 w-4" />,
+    Roasted: <Wind className="h-4 w-4" />,
+    Raw: <Leaf className="h-4 w-4" />,
+    Other: <CookingPot className="h-4 w-4" />
 }
 
 export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
@@ -90,8 +98,18 @@ export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
               </div>
                <div className="space-y-2">
                 <WisdomPill icon={<Sparkles />} title="Vedic Tip" text={meal.vedic_tip} />
-                <WisdomPill icon={<Leaf />} title="Dosha Suggestion" text={meal.dosha_suggestion!} />
-                <WisdomPill icon={<Clock />} title="Time Wisdom" text={meal.time_of_day_wisdom!} />
+                <WisdomPill icon={<Leaf />} title="Dosha Suggestion" text={meal.dosha_suggestion} />
+                <WisdomPill icon={<Clock />} title="Time Wisdom" text={meal.time_of_day_wisdom} />
+                <WisdomPill icon={<ScanEye />} title="Ingredient Breakdown" text={meal.ingredient_breakdown} />
+                <WisdomPill icon={<Scale />} title="Portion Awareness" text={meal.portion_awareness} />
+                <WisdomPill icon={<Snowflake />} title="Seasonal Awareness" text={meal.seasonal_awareness} />
+                {meal.cooking_method && (
+                  <WisdomPill 
+                    icon={COOKING_METHOD_ICONS[meal.cooking_method] || <CookingPot className="h-4 w-4" />} 
+                    title={`${meal.cooking_method} Method Insight`}
+                    text={meal.cooking_method_insight} 
+                  />
+                )}
               </div>
             </div>
           </AccordionContent>
