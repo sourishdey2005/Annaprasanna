@@ -5,16 +5,16 @@ import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Meal } from '@/lib/types';
 
-interface MealConsistencyHeatmapProps {
+interface ProteinHeatmapProps {
   meals: Meal[];
 }
 
-const MealConsistencyHeatmap = ({ meals }: MealConsistencyHeatmapProps) => {
-  const mealCountsByDate = useMemo(() => {
+const ProteinHeatmap = ({ meals }: ProteinHeatmapProps) => {
+  const proteinByDate = useMemo(() => {
     const counts: Record<string, number> = {};
     meals.forEach(meal => {
       const dateStr = meal.date;
-      counts[dateStr] = (counts[dateStr] || 0) + 1;
+      counts[dateStr] = (counts[dateStr] || 0) + meal.protein_g;
     });
     return counts;
   }, [meals]);
@@ -27,11 +27,12 @@ const MealConsistencyHeatmap = ({ meals }: MealConsistencyHeatmapProps) => {
 
   const days = eachDayOfInterval({ start: startDate, end: endDate });
 
-  const getCellColor = (count: number) => {
-    if (count === 0) return 'bg-muted/50';
-    if (count <= 2) return 'bg-chart-4/50';
-    if (count <= 4) return 'bg-chart-1/70';
-    return 'bg-chart-1';
+  const getCellColor = (protein: number) => {
+    if (protein === 0) return 'bg-muted/50';
+    if (protein < 20) return 'bg-chart-2/30';
+    if (protein < 50) return 'bg-chart-2/60';
+    if (protein < 80) return 'bg-chart-2/80';
+    return 'bg-chart-2';
   };
   
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -47,15 +48,15 @@ const MealConsistencyHeatmap = ({ meals }: MealConsistencyHeatmapProps) => {
         <div className="grid grid-cols-5 gap-1">
           {days.map(day => {
             const dateStr = format(day, 'yyyy-MM-dd');
-            const count = mealCountsByDate[dateStr] || 0;
+            const protein = proteinByDate[dateStr] || 0;
             return (
               <Tooltip key={dateStr}>
                 <TooltipTrigger asChild>
-                  <div className={`h-4 w-4 rounded-sm ${getCellColor(count)}`} />
+                  <div className={`h-4 w-4 rounded-sm ${getCellColor(protein)}`} />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{format(day, 'MMMM d, yyyy')}</p>
-                  <p>{count} meal{count !== 1 ? 's' : ''} logged</p>
+                  <p>{protein.toFixed(1)}g of protein</p>
                 </TooltipContent>
               </Tooltip>
             );
@@ -66,4 +67,4 @@ const MealConsistencyHeatmap = ({ meals }: MealConsistencyHeatmapProps) => {
   );
 };
 
-export default MealConsistencyHeatmap;
+export default ProteinHeatmap;

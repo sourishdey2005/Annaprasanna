@@ -12,7 +12,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { MealCard } from './meal-card';
 import type { Meal } from '@/lib/types';
-import MealConsistencyHeatmap from './meal-consistency-heatmap';
+import ProteinHeatmap from './protein-heatmap';
 import WeeklyAharaReport from './weekly-ahara-report';
 import { Button } from '@/components/ui/button';
 import { Download, BookUser } from 'lucide-react';
@@ -145,11 +145,11 @@ export default function HistoryView() {
 
       <Card className="shadow-lg">
         <CardHeader>
-            <CardTitle className="font-headline text-3xl text-center">Āhāra Niyami (Meal Consistency)</CardTitle>
-            <CardDescription className="text-center">A heatmap of your meal logging consistency.</CardDescription>
+            <CardTitle className="font-headline text-3xl text-center">Protein Intake Heatmap</CardTitle>
+            <CardDescription className="text-center">A heatmap of your daily protein intake consistency.</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
-            <MealConsistencyHeatmap meals={meals} />
+            <ProteinHeatmap meals={meals} />
         </CardContent>
       </Card>
       
@@ -176,7 +176,7 @@ export default function HistoryView() {
                 </div>
             ) : (
                 <Accordion type="single" collapsible className="w-full space-y-4">
-                {sortedDates.map((date) => (
+                {sortedates.map((date) => (
                 <Card key={date} className="shadow-inner bg-background">
                     <AccordionItem value={date} className="border-b-0">
                     <AccordionTrigger className="p-6 text-lg font-medium hover:no-underline">
