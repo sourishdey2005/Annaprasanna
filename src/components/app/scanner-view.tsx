@@ -43,10 +43,16 @@ export default function ScannerView() {
   const { toast } = useToast();
   
   useEffect(() => {
-    if (view !== 'camera') return;
-    
-    let stream: MediaStream;
+    let stream: MediaStream | null = null;
     const getCameraPermission = async () => {
+      if (view !== 'camera') {
+         if (videoRef.current?.srcObject) {
+            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+         }
+        return;
+      }
+      
       try {
         stream = await navigator.mediaDevices.getUserMedia({video: true});
         setHasCameraPermission(true);
