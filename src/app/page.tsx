@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, BookHeart, BrainCircuit, Scan, HeartPulse, PieChart } from 'lucide-react';
@@ -41,7 +42,8 @@ export default function LandingPage() {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-16 text-center">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-3xl flex flex-col items-center">
+          <Image src="https://res.cloudinary.com/dodhvvewu/image/upload/v1767340219/logo_1_mqba2z.jpg" alt="Annaprasanna Logo" width={96} height={96} className="mb-6 rounded-full shadow-lg" />
           <div className="mb-4 inline-block rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-accent-foreground">
             A Privacy-First Vedic Nutrition Intelligence App
           </div>
