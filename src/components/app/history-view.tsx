@@ -1,17 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppProvider';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { MealCard } from './meal-card';
 import type { Meal } from '@/lib/types';
+import MealConsistencyHeatmap from './meal-consistency-heatmap';
+import WeeklyAharaReport from './weekly-ahara-report';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { generateVedicJournal } from '@/lib/journal';
 
 interface GroupedMeals {
   [date: string]: Meal[];
@@ -20,7 +25,7 @@ interface GroupedMeals {
 export default function HistoryView() {
   const { meals } = useApp();
 
-  const {groupedMeals, dailyCalories} = useMemo(() => {
+  const {groupedMeals, dailyCalories, weeklyMeals} = useMemo(() => {
     const grouped = meals.reduce((acc: GroupedMeals, meal) => {
       const date = meal.date;
       if (!acc[date]) {
@@ -35,54 +40,98 @@ export default function HistoryView() {
         dailyCals[date] = grouped[date].reduce((sum, meal) => sum + meal.calories, 0);
     }
     
-    return { groupedMeals: grouped, dailyCalories: dailyCals};
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+    const weekDates = eachDayOfInterval({ start: weekStart, end: weekEnd }).map(d => format(d, 'yyyy-MM-dd'));
+    const currentWeekMeals = meals.filter(meal => weekDates.includes(meal.date));
+
+    return { groupedMeals: grouped, dailyCalories: dailyCals, weeklyMeals: currentWeekMeals };
 
   }, [meals]);
+  
+  const handleExport = () => {
+    const journalText = generateVedicJournal(meals);
+    const blob = new Blob([journalText], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Vedic_Journal_${format(new Date(), 'yyyy-MM-dd')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const sortedDates = Object.keys(groupedMeals).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
-  if (sortedDates.length === 0) {
-    return (
-        <div className="container mx-auto p-4 md:p-8">
-            <Card className="shadow-lg text-center">
-                <CardHeader>
-                <CardTitle className="font-headline text-3xl">Vibhāga (Division)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                <p className="text-muted-foreground">Your meal history is empty.</p>
-                <p className="text-muted-foreground mt-2">Start by scanning a meal to begin your journey.</p>
-                </CardContent>
-            </Card>
-        </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8">
-      <h2 className="text-3xl font-headline text-center">Vibhāga (Your Meal History)</h2>
-      <Accordion type="single" collapsible className="w-full space-y-4">
-        {sortedDates.map((date) => (
-          <Card key={date} className="shadow-lg">
-            <AccordionItem value={date} className="border-b-0">
-              <AccordionTrigger className="p-6 text-lg font-medium hover:no-underline">
-                <div className="flex justify-between w-full items-center">
-                    <span>{format(parseISO(date), 'MMMM d, yyyy')}</span>
-                    <span className="text-base font-normal text-muted-foreground pr-4">
-                        {Math.round(dailyCalories[date])} kcal
-                    </span>
+       <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline text-3xl text-center">Saptāhika Āhāra (Weekly Report)</CardTitle>
+             <CardDescription className="text-center">An overview of your eating patterns for this week.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {weeklyMeals.length > 0 ? (
+                <WeeklyAharaReport weeklyMeals={weeklyMeals} />
+            ) : (
+                <p className="text-muted-foreground text-center">Log some meals this week to see your report.</p>
+            )}
+          </CardContent>
+        </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+            <CardTitle className="font-headline text-3xl text-center">Āhāra Niyami (Meal Consistency)</CardTitle>
+            <CardDescription className="text-center">A heatmap of your meal logging consistency.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center">
+            <MealConsistencyHeatmap meals={meals} />
+        </CardContent>
+      </Card>
+      
+      <Card className="shadow-lg">
+        <CardHeader>
+            <CardTitle className="font-headline text-3xl text-center">Vibhāga (Your Meal History)</CardTitle>
+            <CardDescription className="text-center flex justify-center items-center gap-4">
+                Browse your past meals or export them as a journal.
+                <Button variant="outline" size="sm" onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Journal
+                </Button>
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+             {sortedDates.length === 0 ? (
+                <div className="text-center">
+                    <p className="text-muted-foreground">Your meal history is empty.</p>
+                    <p className="text-muted-foreground mt-2">Start by scanning a meal to begin your journey.</p>
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="p-6 pt-0">
-                <div className="space-y-4">
-                  {groupedMeals[date].map((meal) => (
-                    <MealCard key={meal.id} meal={meal} />
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Card>
-        ))}
-      </Accordion>
+            ) : (
+                <Accordion type="single" collapsible className="w-full space-y-4">
+                {sortedDates.map((date) => (
+                <Card key={date} className="shadow-inner bg-background">
+                    <AccordionItem value={date} className="border-b-0">
+                    <AccordionTrigger className="p-6 text-lg font-medium hover:no-underline">
+                        <div className="flex justify-between w-full items-center">
+                            <span>{format(parseISO(date), 'MMMM d, yyyy')}</span>
+                            <span className="text-base font-normal text-muted-foreground pr-4">
+                                {Math.round(dailyCalories[date])} kcal
+                            </span>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-6 pt-0">
+                        <div className="space-y-4">
+                        {groupedMeals[date].map((meal) => (
+                            <MealCard key={meal.id} meal={meal} />
+                        ))}
+                        </div>
+                    </AccordionContent>
+                    </AccordionItem>
+                </Card>
+                ))}
+            </Accordion>
+            )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

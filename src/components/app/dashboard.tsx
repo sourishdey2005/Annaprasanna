@@ -2,21 +2,23 @@
 
 import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppProvider';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isAfter, parseISO } from 'date-fns';
 import CalorieProgress from './charts/calorie-progress';
 import MacrosChart from './charts/macros-chart';
 import GunaBalanceRadar from './charts/guna-balance-radar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import type { DailyTotals, Dosha } from '@/lib/types';
+import type { DailyTotals, Dosha, Sankalpa } from '@/lib/types';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import SankalpaGoals from './sankalpa-goals';
+import { getWeeklyReportData } from '@/lib/reports';
 
 export default function Dashboard() {
-  const { meals, dosha, setDosha } = useApp();
+  const { meals, dosha, setDosha, sankalpa, setSankalpa } = useApp();
   const [calorieGoal, setCalorieGoal] = useState(2000);
 
-  const { todaysTotals, weeklyGunaTotals } = useMemo(() => {
+  const { todaysTotals, weeklyGunaTotals, weeklyReportData } = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const todaysMeals = meals.filter((meal) => meal.date === todayStr);
 
@@ -26,8 +28,8 @@ export default function Dashboard() {
 
     const weeklyMeals = meals.filter(meal => weekDates.includes(meal.date));
 
-    const dailyTotals = todaysMeals.reduce(
-      (acc: DailyTotals, meal) => {
+    const dailyTotals: DailyTotals = todaysMeals.reduce(
+      (acc: Omit<DailyTotals, 'mealCount'>, meal) => {
         acc.calories += meal.calories;
         acc.protein += meal.protein_g;
         acc.carbs += meal.carbs_g;
@@ -39,20 +41,25 @@ export default function Dashboard() {
       },
       { calories: 0, protein: 0, carbs: 0, fats: 0, sattvic: 0, rajasic: 0, tamasic: 0 }
     );
-    
+    (dailyTotals as DailyTotals).mealCount = todaysMeals.length;
+
     const weeklyTotals = weeklyMeals.reduce((acc, meal) => {
         if (meal.guna === 'Sattvic') acc.sattvic += 1;
         if (meal.guna === 'Rajasic') acc.rajasic += 1;
         if (meal.guna === 'Tamasic') acc.tamasic += 1;
         return acc;
     }, { sattvic: 0, rajasic: 0, tamasic: 0 });
+    
+    const reportData = getWeeklyReportData(weeklyMeals);
 
-
-    return { todaysTotals: dailyTotals, weeklyGunaTotals: weeklyTotals };
+    return { todaysTotals: dailyTotals, weeklyGunaTotals: weeklyTotals, weeklyReportData: reportData };
   }, [meals]);
   
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8">
+      
+       <SankalpaGoals currentSankalpa={sankalpa} setSankalpa={setSankalpa} weeklyReportData={weeklyReportData} />
+
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-3xl text-center">Aaj Ka Āhāra (Today's Nourishment)</CardTitle>

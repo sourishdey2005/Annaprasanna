@@ -86,3 +86,15 @@
 .lotus-loader svg {
   animation: bloom 2.5s infinite ease-in-out;
 }
+
+.rdp {
+    --rdp-cell-size: 2.5rem;
+    --rdp-caption-font-size: 1rem;
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--accent));
+    --rdp-accent-color-dark: hsl(var(--primary));
+    --rdp-background-color-dark: hsl(var(--accent));
+    --rdp-outline: 2px solid hsl(var(--ring));
+    --rdp-outline-selected: 3px solid hsl(var(--ring));
+    --rdp-selected-color: hsl(var(--primary-foreground));
+}

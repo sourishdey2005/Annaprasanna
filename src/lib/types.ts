@@ -32,4 +32,17 @@ export type DailyTotals = {
   sattvic: number;
   rajasic: number;
   tamasic: number;
+  mealCount: number;
 };
+
+export type WeeklyReportData = {
+    totalMeals: number;
+    sattvicCount: number;
+    rajasicCount: number;
+    tamasicCount: number;
+    lateNightMeals: number;
+    outsideMeals: number;
+    proteinIntakeTrend: 'increasing' | 'decreasing' | 'stable';
+}
+
+export type Sankalpa = 'increase-sattvic' | 'reduce-rajasic' | 'reduce-tamasic' | 'reduce-late-eating';
