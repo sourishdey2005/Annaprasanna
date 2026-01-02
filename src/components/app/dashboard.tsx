@@ -15,6 +15,7 @@ import SankalpaGoals from './sankalpa-goals';
 import { getWeeklyReportData } from '@/lib/reports';
 import { Switch } from '@/components/ui/switch';
 import DailyCalorieFlowChart from './charts/daily-calorie-flow';
+import MealTimingClock from './charts/meal-timing-clock';
 
 export default function Dashboard() {
   const { meals, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode } = useApp();
@@ -111,15 +112,27 @@ export default function Dashboard() {
         </Card>
       </div>
       
-       <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="font-headline">Daily Calorie Flow</CardTitle>
-            <CardDescription>See when you consume calories throughout the day.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DailyCalorieFlowChart meals={todaysMeals} silentMode={silentMode} />
-          </CardContent>
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="shadow-lg">
+            <CardHeader>
+                <CardTitle className="font-headline">Daily Calorie Flow</CardTitle>
+                <CardDescription>See when you consume calories throughout the day.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <DailyCalorieFlowChart meals={todaysMeals} silentMode={silentMode} />
+            </CardContent>
+            </Card>
+        <Card className="shadow-lg">
+            <CardHeader>
+                <CardTitle className="font-headline">Meal Timing Clock</CardTitle>
+                <CardDescription>Your meals on a 24-hour cycle.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <MealTimingClock meals={todaysMeals} />
+            </CardContent>
         </Card>
+       </div>
+
 
        <Card className="shadow-lg">
           <CardHeader>

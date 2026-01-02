@@ -4,7 +4,7 @@ import type { Meal, WeeklyReportData } from './types';
 
 export function getWeeklyReportData(weeklyMeals: Meal[]): WeeklyReportData {
     if (weeklyMeals.length === 0) {
-        return { totalMeals: 0, sattvicCount: 0, rajasicCount: 0, tamasicCount: 0, lateNightMeals: 0, outsideMeals: 0, proteinIntakeTrend: 'stable' };
+        return { totalMeals: 0, sattvicCount: 0, rajasicCount: 0, tamasicCount: 0, lateNightMeals: 0, outsideMeals: 0, proteinIntakeTrend: 'stable', homeCookedMeals: 0, prasadamMeals: 0, largePortions: 0, cookingMethods: {} };
     }
 
     let sattvicCount = 0;
@@ -12,6 +12,10 @@ export function getWeeklyReportData(weeklyMeals: Meal[]): WeeklyReportData {
     let tamasicCount = 0;
     let lateNightMeals = 0;
     let outsideMeals = 0;
+    let homeCookedMeals = 0;
+    let prasadamMeals = 0;
+    let largePortions = 0;
+    let cookingMethods: { [method: string]: number } = {};
     let proteinByDay: { [day: string]: { total: number, count: number } } = {};
 
     weeklyMeals.forEach(meal => {
@@ -24,8 +28,16 @@ export function getWeeklyReportData(weeklyMeals: Meal[]): WeeklyReportData {
             lateNightMeals++;
         }
 
-        if (meal.meal_context === 'Outside') {
-            outsideMeals++;
+        if (meal.meal_context === 'Outside') outsideMeals++;
+        if (meal.meal_context === 'Home-cooked') homeCookedMeals++;
+        if (meal.meal_context === 'Prasadam') prasadamMeals++;
+
+        if (meal.portion_awareness && meal.portion_awareness.toLowerCase().includes('larger')) {
+            largePortions++;
+        }
+
+        if (meal.cooking_method) {
+            cookingMethods[meal.cooking_method] = (cookingMethods[meal.cooking_method] || 0) + 1;
         }
         
         const day = meal.date;
@@ -48,7 +60,6 @@ export function getWeeklyReportData(weeklyMeals: Meal[]): WeeklyReportData {
         }
     }
 
-
     return {
         totalMeals: weeklyMeals.length,
         sattvicCount,
@@ -56,6 +67,10 @@ export function getWeeklyReportData(weeklyMeals: Meal[]): WeeklyReportData {
         tamasicCount,
         lateNightMeals,
         outsideMeals,
+        homeCookedMeals,
+        prasadamMeals,
+        largePortions,
+        cookingMethods,
         proteinIntakeTrend: proteinTrend,
     };
 }

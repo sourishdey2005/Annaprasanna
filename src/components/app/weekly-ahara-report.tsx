@@ -3,12 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { generateWeeklyReport } from '@/ai/flows/generate-weekly-report';
-import type { Meal } from '@/lib/types';
+import type { WeeklyReportData } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getWeeklyReportData } from '@/lib/reports';
 
 interface WeeklyAharaReportProps {
-    weeklyMeals: Meal[];
+    weeklyReportData: WeeklyReportData;
 }
 
 function ReportLoader() {
@@ -21,16 +20,20 @@ function ReportLoader() {
     )
 }
 
-export default function WeeklyAharaReport({ weeklyMeals }: WeeklyAharaReportProps) {
+export default function WeeklyAharaReport({ weeklyReportData }: WeeklyAharaReportProps) {
     const [report, setReport] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchReport = async () => {
+            if (!weeklyReportData || weeklyReportData.totalMeals === 0) {
+                 setIsLoading(false);
+                 setReport(null);
+                return;
+            }
             setIsLoading(true);
             try {
-                const reportData = getWeeklyReportData(weeklyMeals);
-                const result = await generateWeeklyReport({ data: reportData });
+                const result = await generateWeeklyReport({ data: weeklyReportData });
                 setReport(result.report);
             } catch (error) {
                 console.error("Failed to generate weekly report:", error);
@@ -40,27 +43,40 @@ export default function WeeklyAharaReport({ weeklyMeals }: WeeklyAharaReportProp
             }
         };
 
-        if (weeklyMeals.length > 0) {
-            fetchReport();
-        } else {
-             setIsLoading(false);
-             setReport(null);
-        }
-    }, [weeklyMeals]);
+        fetchReport();
+    }, [weeklyReportData]);
 
     if (isLoading) {
         return <ReportLoader />;
     }
 
-    if (!report) {
-        return null;
-    }
-
     return (
-        <Card className="bg-accent border-accent-foreground/20">
-            <CardContent className="p-6">
-                <p className="text-accent-foreground italic">"{report}"</p>
-            </CardContent>
-        </Card>
+        <div className="space-y-4">
+            {report && (
+                 <Card className="bg-accent border-accent-foreground/20">
+                    <CardContent className="p-6">
+                        <p className="text-accent-foreground italic">"{report}"</p>
+                    </CardContent>
+                </Card>
+            )}
+            <div className="text-sm text-muted-foreground grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="bg-background p-2 rounded-lg">
+                    <p className="font-bold text-lg">{weeklyReportData.totalMeals}</p>
+                    <p>Total Meals</p>
+                </div>
+                 <div className="bg-background p-2 rounded-lg">
+                    <p className="font-bold text-lg">{weeklyReportData.lateNightMeals}</p>
+                    <p>Late Meals</p>
+                </div>
+                 <div className="bg-background p-2 rounded-lg">
+                    <p className="font-bold text-lg">{weeklyReportData.outsideMeals}</p>
+                    <p>Outside Meals</p>
+                </div>
+                 <div className="bg-background p-2 rounded-lg">
+                    <p className="font-bold text-lg">{weeklyReportData.largePortions}</p>
+                    <p>Large Portions</p>
+                </div>
+            </div>
+        </div>
     );
 }

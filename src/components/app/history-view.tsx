@@ -19,6 +19,9 @@ import { Download, BookUser } from 'lucide-react';
 import { generateVedicJournal, generateFoodScripture } from '@/lib/journal';
 import { useToast } from '@/hooks/use-toast';
 import WeeklyGunaTrendChart from './charts/weekly-guna-trend';
+import { getWeeklyReportData } from '@/lib/reports';
+import WeeklyCookingMethodChart from './charts/weekly-cooking-method-chart';
+import WeeklyMealContextChart from './charts/weekly-meal-context-chart';
 
 
 interface GroupedMeals {
@@ -29,7 +32,7 @@ export default function HistoryView() {
   const { meals, silentMode } = useApp();
   const { toast } = useToast();
 
-  const {groupedMeals, dailyCalories, weeklyMeals, last7DaysMeals} = useMemo(() => {
+  const {groupedMeals, dailyCalories, weeklyMeals, last7DaysMeals, weeklyReportData} = useMemo(() => {
     const grouped = meals.reduce((acc: GroupedMeals, meal) => {
       const date = meal.date;
       if (!acc[date]) {
@@ -52,8 +55,10 @@ export default function HistoryView() {
     const sevenDaysAgo = subDays(new Date(), 6);
     const last7DaysInterval = eachDayOfInterval({ start: sevenDaysAgo, end: new Date() }).map(d => format(d, 'yyyy-MM-dd'));
     const mealsFromLast7Days = meals.filter(meal => last7DaysInterval.includes(meal.date));
+    
+    const reportData = getWeeklyReportData(currentWeekMeals);
 
-    return { groupedMeals: grouped, dailyCalories: dailyCals, weeklyMeals: currentWeekMeals, last7DaysMeals: mealsFromLast7Days };
+    return { groupedMeals: grouped, dailyCalories: dailyCals, weeklyMeals: currentWeekMeals, last7DaysMeals: mealsFromLast7Days, weeklyReportData: reportData };
 
   }, [meals]);
   
@@ -99,12 +104,34 @@ export default function HistoryView() {
           </CardHeader>
           <CardContent>
             {weeklyMeals.length > 0 ? (
-                <WeeklyAharaReport weeklyMeals={weeklyMeals} />
+                <WeeklyAharaReport weeklyReportData={weeklyReportData} />
             ) : (
                 <p className="text-muted-foreground text-center">Log some meals this week to see your report.</p>
             )}
           </CardContent>
         </Card>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+             <Card className="shadow-lg">
+                <CardHeader>
+                <CardTitle className="font-headline text-3xl text-center">Weekly Cooking Methods</CardTitle>
+                <CardDescription className="text-center">How your food was prepared this week.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <WeeklyCookingMethodChart data={weeklyReportData.cookingMethods} />
+                </CardContent>
+            </Card>
+             <Card className="shadow-lg">
+                <CardHeader>
+                <CardTitle className="font-headline text-3xl text-center">Lifestyle Balance</CardTitle>
+                <CardDescription className="text-center">Home-cooked, Prasadam, and outside meals.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <WeeklyMealContextChart data={weeklyReportData} />
+                </CardContent>
+            </Card>
+        </div>
+
 
       <Card className="shadow-lg">
         <CardHeader>

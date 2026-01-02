@@ -43,6 +43,12 @@ export type WeeklyReportData = {
     lateNightMeals: number;
     outsideMeals: number;
     proteinIntakeTrend: 'increasing' | 'decreasing' | 'stable';
+    homeCookedMeals: number;
+    prasadamMeals: number;
+    largePortions: number;
+    cookingMethods: {
+        [method: string]: number;
+    };
 }
 
 export type Sankalpa = 'increase-sattvic' | 'reduce-rajasic' | 'reduce-tamasic' | 'reduce-late-eating';
