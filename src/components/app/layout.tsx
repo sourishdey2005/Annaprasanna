@@ -20,7 +20,7 @@ function Footer() {
     <footer className="mt-auto border-t py-8">
       <div className="container text-center text-muted-foreground">
         <p className="text-sm">
-          Made by <a href="https://sourishdey.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary underline">Soruish Dey</a>
+          Made by <a href="https://sourishdey.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground hover:text-primary underline">Sourish Dey</a>
         </p>
         <div className="mt-4 flex justify-center gap-6">
           <a href="https://github.com/sourishdey2005" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
