@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppProvider';
-import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
+import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, subDays } from 'date-fns';
 import {
   Accordion,
   AccordionContent,
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Download, BookUser } from 'lucide-react';
 import { generateVedicJournal, generateFoodScripture } from '@/lib/journal';
 import { useToast } from '@/hooks/use-toast';
+import WeeklyGunaTrendChart from './charts/weekly-guna-trend';
 
 
 interface GroupedMeals {
@@ -28,7 +29,7 @@ export default function HistoryView() {
   const { meals, silentMode } = useApp();
   const { toast } = useToast();
 
-  const {groupedMeals, dailyCalories, weeklyMeals} = useMemo(() => {
+  const {groupedMeals, dailyCalories, weeklyMeals, last7DaysMeals} = useMemo(() => {
     const grouped = meals.reduce((acc: GroupedMeals, meal) => {
       const date = meal.date;
       if (!acc[date]) {
@@ -48,7 +49,11 @@ export default function HistoryView() {
     const weekDates = eachDayOfInterval({ start: weekStart, end: weekEnd }).map(d => format(d, 'yyyy-MM-dd'));
     const currentWeekMeals = meals.filter(meal => weekDates.includes(meal.date));
 
-    return { groupedMeals: grouped, dailyCalories: dailyCals, weeklyMeals: currentWeekMeals };
+    const sevenDaysAgo = subDays(new Date(), 6);
+    const last7DaysInterval = eachDayOfInterval({ start: sevenDaysAgo, end: new Date() }).map(d => format(d, 'yyyy-MM-dd'));
+    const mealsFromLast7Days = meals.filter(meal => last7DaysInterval.includes(meal.date));
+
+    return { groupedMeals: grouped, dailyCalories: dailyCals, weeklyMeals: currentWeekMeals, last7DaysMeals: mealsFromLast7Days };
 
   }, [meals]);
   
@@ -100,6 +105,16 @@ export default function HistoryView() {
             )}
           </CardContent>
         </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-3xl text-center">Weekly Guna Trend</CardTitle>
+          <CardDescription className="text-center">Observe the flow of gunas in your diet over the last 7 days.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WeeklyGunaTrendChart meals={last7DaysMeals} />
+        </CardContent>
+      </Card>
 
       <Card className="shadow-lg">
         <CardHeader>

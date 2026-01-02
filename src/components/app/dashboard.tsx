@@ -5,7 +5,7 @@ import { useApp } from '@/context/AppProvider';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isAfter, parseISO } from 'date-fns';
 import CalorieProgress from './charts/calorie-progress';
 import MacrosChart from './charts/macros-chart';
-import GunaBalanceRadar from './charts/guna-balance-radar';
+import GunaBalanceChart from './charts/guna-balance-chart';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { DailyTotals, Dosha, Sankalpa } from '@/lib/types';
 import { Slider } from '@/components/ui/slider';
@@ -14,12 +14,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import SankalpaGoals from './sankalpa-goals';
 import { getWeeklyReportData } from '@/lib/reports';
 import { Switch } from '@/components/ui/switch';
+import DailyCalorieFlowChart from './charts/daily-calorie-flow';
 
 export default function Dashboard() {
   const { meals, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode } = useApp();
   const [calorieGoal, setCalorieGoal] = useState(2000);
 
-  const { todaysTotals, weeklyGunaTotals, weeklyReportData } = useMemo(() => {
+  const { todaysMeals, todaysTotals, weeklyGunaTotals, weeklyReportData } = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const todaysMeals = meals.filter((meal) => meal.date === todayStr);
 
@@ -53,7 +54,7 @@ export default function Dashboard() {
     
     const reportData = getWeeklyReportData(weeklyMeals);
 
-    return { todaysTotals: dailyTotals, weeklyGunaTotals: weeklyTotals, weeklyReportData: reportData };
+    return { todaysMeals, todaysTotals: dailyTotals, weeklyGunaTotals: weeklyTotals, weeklyReportData: reportData };
   }, [meals]);
   
   return (
@@ -101,14 +102,24 @@ export default function Dashboard() {
         </Card>
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline">This Week's Guna Balance</CardTitle>
+            <CardTitle className="font-headline">Today's Guna Balance</CardTitle>
             <CardDescription>Visualize your Sattvic, Rajasic, & Tamasic intake.</CardDescription>
           </CardHeader>
           <CardContent>
-            <GunaBalanceRadar data={weeklyGunaTotals} />
+            <GunaBalanceChart data={todaysTotals} />
           </CardContent>
         </Card>
       </div>
+      
+       <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-headline">Daily Calorie Flow</CardTitle>
+            <CardDescription>See when you consume calories throughout the day.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DailyCalorieFlowChart meals={todaysMeals} silentMode={silentMode} />
+          </CardContent>
+        </Card>
 
        <Card className="shadow-lg">
           <CardHeader>
