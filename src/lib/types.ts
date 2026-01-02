@@ -10,9 +10,13 @@ export type Meal = {
   timestamp: number;
   date: string; // YYYY-MM-DD
   imageUrl?: string; // Storing image is optional, for history view
+  meal_context?: 'Prasadam' | 'Home-cooked' | 'Outside';
+  dosha_suggestion?: string;
+  time_of_day_wisdom?: string;
 };
 
 export type Guna = 'Sattvic' | 'Rajasic' | 'Tamasic';
+export type Dosha = 'Vata' | 'Pitta' | 'Kapha' | 'Tridoshic';
 
 export type DailyTotals = {
   calories: number;

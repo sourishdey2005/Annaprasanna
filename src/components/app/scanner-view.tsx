@@ -2,7 +2,7 @@
 import { useState, useRef, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Camera, FileImage, Sparkles } from 'lucide-react';
+import { Camera, FileImage, Sparkles, Check } from 'lucide-react';
 import { useApp } from '@/context/AppProvider';
 import { analyzeFoodImage } from '@/app/_actions/meal';
 import type { Meal } from '@/lib/types';
@@ -10,6 +10,8 @@ import { MealCard } from './meal-card';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { LotusIcon } from '../icons/lotus';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 function LotusLoader() {
   return (
@@ -23,13 +25,13 @@ function LotusLoader() {
   );
 }
 
-
 export default function ScannerView() {
   const [image, setImage] = useState<string | null>(null);
-  const [analysisResult, setAnalysisResult] = useState<Omit<Meal, 'id' | 'timestamp' | 'date'> | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<Omit<Meal, 'id'> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [mealContext, setMealContext] = useState<'Prasadam' | 'Home-cooked' | 'Outside'>('Home-cooked');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addMeal } = useApp();
+  const { addMeal, dosha } = useApp();
   const { toast } = useToast();
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +53,7 @@ export default function ScannerView() {
     setIsLoading(true);
     setAnalysisResult(null);
     try {
-      const result = await analyzeFoodImage({ imageUri: image });
+      const result = await analyzeFoodImage({ imageUri: image, dosha, timestamp: Date.now() });
       if (result.success && result.data) {
         setAnalysisResult(result.data);
       } else {
@@ -76,6 +78,7 @@ export default function ScannerView() {
         timestamp: Date.now(),
         date: format(new Date(), 'yyyy-MM-dd'),
         imageUrl: image!, // save the image for history
+        meal_context: mealContext,
       };
       await addMeal(mealToSave);
       toast({
@@ -131,10 +134,24 @@ export default function ScannerView() {
           {isLoading && <LotusLoader />}
 
           {!isLoading && image && !analysisResult && (
-            <Button size="lg" onClick={handleAnalyze}>
-              <Sparkles className="mr-2" />
-              Analyze Meal
-            </Button>
+            <div className="flex flex-col items-center gap-6 w-full max-w-md">
+               <RadioGroup
+                value={mealContext}
+                onValueChange={(value: 'Prasadam' | 'Home-cooked' | 'Outside') => setMealContext(value)}
+                className="grid grid-cols-3 gap-4"
+              >
+                {(['Prasadam', 'Home-cooked', 'Outside']).map((d) => (
+                  <Label key={d} htmlFor={d} className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${mealContext === d ? 'border-primary' : ''}`}>
+                    <RadioGroupItem value={d} id={d} className="sr-only" />
+                    <span>{d}</span>
+                  </Label>
+                ))}
+              </RadioGroup>
+              <Button size="lg" onClick={handleAnalyze}>
+                <Sparkles className="mr-2" />
+                Analyze Meal
+              </Button>
+            </div>
           )}
 
           {analysisResult && (
@@ -142,7 +159,7 @@ export default function ScannerView() {
               <h2 className="text-2xl font-headline text-center">Analysis Complete</h2>
               <MealCard meal={analysisResult as Meal} defaultOpen={true} />
               <div className="flex justify-center gap-4">
-                <Button size="lg" onClick={handleSaveMeal}>Add to Today's Intake</Button>
+                <Button size="lg" onClick={handleSaveMeal}><Check className="mr-2"/>Add to Today's Intake</Button>
                 <Button size="lg" variant="outline" onClick={() => {setImage(null); setAnalysisResult(null);}}>Scan Another</Button>
               </div>
             </div>

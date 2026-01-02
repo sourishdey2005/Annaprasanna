@@ -10,6 +10,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Meal } from '@/lib/types';
+import { Landmark, Home, UtensilsCrossed, Clock, Leaf, Sparkles } from 'lucide-react';
 
 interface MealCardProps {
   meal: Meal;
@@ -22,6 +23,12 @@ const GUNA_COLORS = {
   Tamasic: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700',
 };
 
+const MEAL_CONTEXT_ICONS = {
+  'Prasadam': <Landmark className="h-4 w-4" />,
+  'Home-cooked': <Home className="h-4 w-4" />,
+  'Outside': <UtensilsCrossed className="h-4 w-4" />,
+}
+
 function Stat({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
     <div className="flex flex-col items-center rounded-lg bg-accent p-3 text-center">
@@ -30,6 +37,19 @@ function Stat({ label, value, unit }: { label: string; value: number; unit: stri
       <span className="text-xs text-accent-foreground/60">{unit}</span>
     </div>
   );
+}
+
+function WisdomPill({ icon, title, text }: { icon: React.ReactNode, title: string, text: string }) {
+    if (!text) return null;
+    return (
+        <div className="flex items-start gap-4 rounded-lg border bg-background p-4">
+            <div className="text-primary">{icon}</div>
+            <div>
+                <p className="font-semibold">{title}</p>
+                <p className="text-sm text-muted-foreground italic">"{text}"</p>
+            </div>
+        </div>
+    );
 }
 
 export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
@@ -51,7 +71,10 @@ export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
                 />
               )}
               <div className="flex-1 text-left">
-                <h3 className="font-semibold text-lg">{meal.food_name}</h3>
+                <div className="flex items-center gap-2">
+                    {meal.meal_context && MEAL_CONTEXT_ICONS[meal.meal_context]}
+                    <h3 className="font-semibold text-lg">{meal.food_name}</h3>
+                </div>
                 <p className="text-sm text-muted-foreground">{meal.calories} kcal</p>
               </div>
               <Badge variant="outline" className={`ml-auto mr-4 ${gunaColor}`}>{meal.guna}</Badge>
@@ -65,9 +88,10 @@ export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
                 <Stat label="Carbs" value={meal.carbs_g} unit="grams" />
                 <Stat label="Fats" value={meal.fats_g} unit="grams" />
               </div>
-              <div className="rounded-lg border bg-background p-4 text-center">
-                <p className="text-sm font-medium">Vedic Tip</p>
-                <p className="text-muted-foreground italic">"{meal.vedic_tip}"</p>
+               <div className="space-y-2">
+                <WisdomPill icon={<Sparkles />} title="Vedic Tip" text={meal.vedic_tip} />
+                <WisdomPill icon={<Leaf />} title="Dosha Suggestion" text={meal.dosha_suggestion!} />
+                <WisdomPill icon={<Clock />} title="Time Wisdom" text={meal.time_of_day_wisdom!} />
               </div>
             </div>
           </AccordionContent>

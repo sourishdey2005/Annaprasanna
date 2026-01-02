@@ -1,22 +1,26 @@
 'use client';
 import { createContext, useContext, ReactNode } from 'react';
 import { useMeals } from '@/hooks/use-meals';
-import type { Meal } from '@/lib/types';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import type { Meal, Dosha } from '@/lib/types';
 
 interface AppContextType {
   meals: Meal[];
   addMeal: (newMeal: Meal) => Promise<Meal>;
   isLoading: boolean;
   error: string | null;
+  dosha: Dosha;
+  setDosha: (dosha: Dosha) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { meals, addMeal, isLoading, error } = useMeals();
+  const [dosha, setDosha] = useLocalStorage<Dosha>('user-dosha', 'Tridoshic');
 
   return (
-    <AppContext.Provider value={{ meals, addMeal, isLoading, error }}>
+    <AppContext.Provider value={{ meals, addMeal, isLoading, error, dosha, setDosha }}>
       {children}
     </AppContext.Provider>
   );
