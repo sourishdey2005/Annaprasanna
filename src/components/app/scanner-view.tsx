@@ -73,13 +73,15 @@ export default function ScannerView() {
   const handleSaveMeal = async () => {
     if (!analysisResult) return;
     try {
-      const mealToSave: Meal = {
+      // The meal object created here should not have an id property yet
+      const mealToSave: Omit<Meal, 'id'> & { timestamp: number; date: string; imageUrl: string; meal_context: 'Prasadam' | 'Home-cooked' | 'Outside' } = {
         ...analysisResult,
         timestamp: Date.now(),
         date: format(new Date(), 'yyyy-MM-dd'),
         imageUrl: image!, // save the image for history
         meal_context: mealContext,
       };
+
       await addMeal(mealToSave);
       toast({
         title: 'Meal Saved',
@@ -96,6 +98,7 @@ export default function ScannerView() {
       });
     }
   };
+
 
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8">
@@ -141,7 +144,7 @@ export default function ScannerView() {
                 className="grid grid-cols-3 gap-4"
               >
                 {(['Prasadam', 'Home-cooked', 'Outside']).map((d) => (
-                  <Label key={d} htmlFor={d} className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground ${mealContext === d ? 'border-primary' : ''}`}>
+                  <Label key={d} htmlFor={d} className={`flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground ${mealContext === d ? 'border-primary' : ''}`}>
                     <RadioGroupItem value={d} id={d} className="sr-only" />
                     <span>{d}</span>
                   </Label>

@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Meal } from '@/lib/types';
 import { Landmark, Home, UtensilsCrossed, Clock, Leaf, Sparkles, Flame, Droplets, Wind, CookingPot, ScanEye, Snowflake, Scale } from 'lucide-react';
+import { useApp } from '@/context/AppProvider';
 
 interface MealCardProps {
   meal: Meal;
@@ -61,6 +62,7 @@ const COOKING_METHOD_ICONS = {
 }
 
 export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
+  const { silentMode } = useApp();
   const gunaColor = GUNA_COLORS[meal.guna] || GUNA_COLORS.Tamasic;
   
   return (
@@ -83,19 +85,21 @@ export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
                     {meal.meal_context && MEAL_CONTEXT_ICONS[meal.meal_context]}
                     <h3 className="font-semibold text-lg">{meal.food_name}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">{meal.calories} kcal</p>
+                {!silentMode && <p className="text-sm text-muted-foreground">{meal.calories} kcal</p>}
               </div>
               <Badge variant="outline" className={`ml-auto mr-4 ${gunaColor}`}>{meal.guna}</Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent className="p-4 pt-0">
             <div className="space-y-4">
-              <div className="grid grid-cols-4 gap-2 md:gap-4">
-                <Stat label="Calories" value={meal.calories} unit="kcal" />
-                <Stat label="Protein" value={meal.protein_g} unit="grams" />
-                <Stat label="Carbs" value={meal.carbs_g} unit="grams" />
-                <Stat label="Fats" value={meal.fats_g} unit="grams" />
-              </div>
+              {!silentMode && (
+                <div className="grid grid-cols-4 gap-2 md:gap-4">
+                  <Stat label="Calories" value={meal.calories} unit="kcal" />
+                  <Stat label="Protein" value={meal.protein_g} unit="grams" />
+                  <Stat label="Carbs" value={meal.carbs_g} unit="grams" />
+                  <Stat label="Fats" value={meal.fats_g} unit="grams" />
+                </div>
+              )}
                <div className="space-y-2">
                 <WisdomPill icon={<Sparkles />} title="Vedic Tip" text={meal.vedic_tip} />
                 <WisdomPill icon={<Leaf />} title="Dosha Suggestion" text={meal.dosha_suggestion} />

@@ -24,7 +24,7 @@ export function useMeals() {
     loadMeals();
   }, []);
 
-  const addMeal = useCallback(async (newMeal: Meal) => {
+  const addMeal = useCallback(async (newMeal: Omit<Meal, 'id'>) => {
     try {
       const savedMeal = await saveMealToDB(newMeal);
       setMeals((prevMeals) => [...prevMeals, savedMeal].sort((a,b) => b.timestamp - a.timestamp));

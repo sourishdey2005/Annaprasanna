@@ -36,7 +36,7 @@ export const initDB = (): Promise<boolean> => {
   });
 };
 
-export const saveMealToDB = (meal: Meal): Promise<Meal> => {
+export const saveMealToDB = (meal: Omit<Meal, 'id'>): Promise<Meal> => {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);

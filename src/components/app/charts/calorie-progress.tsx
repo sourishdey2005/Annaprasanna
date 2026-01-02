@@ -2,16 +2,46 @@
 
 import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
+import { Smile } from 'lucide-react';
 
 interface CalorieProgressProps {
   value: number;
   goal: number;
+  silentMode: boolean;
 }
 
-export default function CalorieProgress({ value, goal }: CalorieProgressProps) {
+export default function CalorieProgress({ value, goal, silentMode }: CalorieProgressProps) {
   const percentage = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
   const data = [{ name: 'calories', value: percentage, fill: 'hsl(var(--primary))' }];
   const endAngle = 360 * (percentage / 100) + 90;
+
+  if (silentMode) {
+      return (
+         <div className="relative h-64 w-64">
+            <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart
+                innerRadius="70%"
+                outerRadius="100%"
+                barSize={20}
+                data={data}
+                startAngle={90}
+                endAngle={450}
+                >
+                <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                <RadialBar
+                    background={{ fill: 'hsl(var(--muted))' }}
+                    dataKey="value"
+                    cornerRadius={10}
+                />
+                </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <Smile className="h-16 w-16 text-primary" />
+                <p className="text-muted-foreground mt-2">Mindful Day</p>
+            </div>
+        </div>
+      )
+  }
 
   return (
     <div className="relative h-64 w-64">

@@ -6,13 +6,15 @@ import type { Meal, Dosha, Sankalpa } from '@/lib/types';
 
 interface AppContextType {
   meals: Meal[];
-  addMeal: (newMeal: Meal) => Promise<Meal>;
+  addMeal: (newMeal: Omit<Meal, 'id'>) => Promise<Meal>;
   isLoading: boolean;
   error: string | null;
   dosha: Dosha;
   setDosha: (dosha: Dosha) => void;
   sankalpa: Sankalpa;
   setSankalpa: (sankalpa: Sankalpa) => void;
+  silentMode: boolean;
+  setSilentMode: (silent: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -21,9 +23,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { meals, addMeal, isLoading, error } = useMeals();
   const [dosha, setDosha] = useLocalStorage<Dosha>('user-dosha', 'Tridoshic');
   const [sankalpa, setSankalpa] = useLocalStorage<Sankalpa>('user-sankalpa', 'increase-sattvic');
+  const [silentMode, setSilentMode] = useLocalStorage<boolean>('silent-mode', false);
 
   return (
-    <AppContext.Provider value={{ meals, addMeal, isLoading, error, dosha, setDosha, sankalpa, setSankalpa }}>
+    <AppContext.Provider value={{ meals, addMeal, isLoading, error, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode }}>
       {children}
     </AppContext.Provider>
   );

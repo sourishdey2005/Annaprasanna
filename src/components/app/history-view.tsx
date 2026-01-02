@@ -15,15 +15,18 @@ import type { Meal } from '@/lib/types';
 import MealConsistencyHeatmap from './meal-consistency-heatmap';
 import WeeklyAharaReport from './weekly-ahara-report';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-import { generateVedicJournal } from '@/lib/journal';
+import { Download, BookUser } from 'lucide-react';
+import { generateVedicJournal, generateFoodScripture } from '@/lib/journal';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface GroupedMeals {
   [date: string]: Meal[];
 }
 
 export default function HistoryView() {
-  const { meals } = useApp();
+  const { meals, silentMode } = useApp();
+  const { toast } = useToast();
 
   const {groupedMeals, dailyCalories, weeklyMeals} = useMemo(() => {
     const grouped = meals.reduce((acc: GroupedMeals, meal) => {
@@ -49,7 +52,7 @@ export default function HistoryView() {
 
   }, [meals]);
   
-  const handleExport = () => {
+  const handleExportJournal = () => {
     const journalText = generateVedicJournal(meals);
     const blob = new Blob([journalText], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
@@ -59,6 +62,26 @@ export default function HistoryView() {
     link.click();
     document.body.removeChild(link);
   };
+  
+  const handleGenerateScripture = () => {
+    if (meals.length < 30) {
+      toast({
+        variant: 'destructive',
+        title: 'Not Enough Data',
+        description: `You need at least 30 logged meals to generate your Ahara Profile. You have ${meals.length}.`
+      });
+      return;
+    }
+    const scriptureText = generateFoodScripture(meals);
+    const blob = new Blob([scriptureText], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `My_Ahara_Profile_${format(new Date(), 'yyyy-MM-dd')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const sortedDates = Object.keys(groupedMeals).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
@@ -91,9 +114,13 @@ export default function HistoryView() {
       <Card className="shadow-lg">
         <CardHeader>
             <CardTitle className="font-headline text-3xl text-center">Vibhāga (Your Meal History)</CardTitle>
-            <CardDescription className="text-center flex justify-center items-center gap-4">
-                Browse your past meals or export them as a journal.
-                <Button variant="outline" size="sm" onClick={handleExport}>
+            <CardDescription className="text-center flex flex-wrap justify-center items-center gap-4">
+                Browse past meals or generate a report.
+                 <Button variant="outline" size="sm" onClick={handleGenerateScripture}>
+                    <BookUser className="mr-2 h-4 w-4" />
+                    Generate Ahara Profile
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleExportJournal}>
                     <Download className="mr-2 h-4 w-4" />
                     Export Journal
                 </Button>
@@ -113,9 +140,11 @@ export default function HistoryView() {
                     <AccordionTrigger className="p-6 text-lg font-medium hover:no-underline">
                         <div className="flex justify-between w-full items-center">
                             <span>{format(parseISO(date), 'MMMM d, yyyy')}</span>
-                            <span className="text-base font-normal text-muted-foreground pr-4">
-                                {Math.round(dailyCalories[date])} kcal
-                            </span>
+                            {!silentMode &&
+                              <span className="text-base font-normal text-muted-foreground pr-4">
+                                  {Math.round(dailyCalories[date])} kcal
+                              </span>
+                            }
                         </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-6 pt-0">

@@ -13,9 +13,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import SankalpaGoals from './sankalpa-goals';
 import { getWeeklyReportData } from '@/lib/reports';
+import { Switch } from '@/components/ui/switch';
 
 export default function Dashboard() {
-  const { meals, dosha, setDosha, sankalpa, setSankalpa } = useApp();
+  const { meals, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode } = useApp();
   const [calorieGoal, setCalorieGoal] = useState(2000);
 
   const { todaysTotals, weeklyGunaTotals, weeklyReportData } = useMemo(() => {
@@ -63,22 +64,28 @@ export default function Dashboard() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-3xl text-center">Aaj Ka Āhāra (Today's Nourishment)</CardTitle>
+           <div className="flex items-center space-x-2 justify-center pt-2">
+            <Switch id="silent-mode" checked={silentMode} onCheckedChange={setSilentMode} />
+            <Label htmlFor="silent-mode">Silent Mode (No Numbers)</Label>
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-6">
-          <CalorieProgress value={todaysTotals.calories} goal={calorieGoal} />
-          <div className="w-full max-w-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="calorie-goal">Daily Calorie Goal: {calorieGoal} kcal</Label>
+          <CalorieProgress value={todaysTotals.calories} goal={calorieGoal} silentMode={silentMode} />
+          {!silentMode && (
+            <div className="w-full max-w-sm space-y-4">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="calorie-goal">Daily Calorie Goal: {calorieGoal} kcal</Label>
+              </div>
+              <Slider
+                id="calorie-goal"
+                min={1000}
+                max={4000}
+                step={50}
+                value={[calorieGoal]}
+                onValueChange={(value) => setCalorieGoal(value[0])}
+              />
             </div>
-            <Slider
-              id="calorie-goal"
-              min={1000}
-              max={4000}
-              step={50}
-              value={[calorieGoal]}
-              onValueChange={(value) => setCalorieGoal(value[0])}
-            />
-          </div>
+          )}
         </CardContent>
       </Card>
       
@@ -89,7 +96,7 @@ export default function Dashboard() {
             <CardDescription>Today's Protein, Carbs, and Fats</CardDescription>
           </CardHeader>
           <CardContent>
-            <MacrosChart data={todaysTotals} />
+            <MacrosChart data={todaysTotals} silentMode={silentMode}/>
           </CardContent>
         </Card>
         <Card className="shadow-lg">

@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 
 interface MacrosChartProps {
   data: Pick<DailyTotals, 'protein' | 'carbs' | 'fats'>;
+  silentMode: boolean;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -30,12 +31,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 
-export default function MacrosChart({ data }: MacrosChartProps) {
+export default function MacrosChart({ data, silentMode }: MacrosChartProps) {
   const chartData = [
     { name: 'Protein', value: data.protein.toFixed(1), fill: 'hsl(var(--chart-1))' },
     { name: 'Carbs', value: data.carbs.toFixed(1), fill: 'hsl(var(--chart-2))' },
     { name: 'Fats', value: data.fats.toFixed(1), fill: 'hsl(var(--chart-3))' },
   ];
+  
+  if (silentMode) {
+      return (
+          <div className="h-64 w-full flex items-center justify-center text-muted-foreground">
+              <p>Macro data is hidden in Silent Mode.</p>
+          </div>
+      )
+  }
   
   return (
     <div className="h-64 w-full">
