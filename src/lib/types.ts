@@ -33,6 +33,7 @@ export type DailyTotals = {
   rajasic: number;
   tamasic: number;
   mealCount: number;
+  lateNightMealCount: number;
 };
 
 export type WeeklyReportData = {

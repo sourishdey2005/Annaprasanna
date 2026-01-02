@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useApp } from '@/context/AppProvider';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isAfter, parseISO } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isAfter, parseISO, getHours } from 'date-fns';
 import CalorieProgress from './charts/calorie-progress';
 import MacrosChart from './charts/macros-chart';
 import GunaBalanceChart from './charts/guna-balance-chart';
@@ -16,12 +16,60 @@ import { getWeeklyReportData } from '@/lib/reports';
 import { Switch } from '@/components/ui/switch';
 import DailyCalorieFlowChart from './charts/daily-calorie-flow';
 import MealTimingClock from './charts/meal-timing-clock';
+import { generateDailyReport } from '@/ai/flows/generate-daily-report';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function DailyReport({ todaysTotals }: { todaysTotals: DailyTotals }) {
+    const [report, setReport] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReport = async () => {
+            if (!todaysTotals || todaysTotals.mealCount === 0) {
+                 setIsLoading(false);
+                 setReport("Log a meal to see your daily summary.");
+                return;
+            }
+            setIsLoading(true);
+            try {
+                const lateNightMeals = todaysTotals.lateNightMealCount || 0;
+                const result = await generateDailyReport({ 
+                    mealCount: todaysTotals.mealCount,
+                    sattvicCount: todaysTotals.sattvic,
+                    rajasicCount: todaysTotals.rajasic,
+                    tamasicCount: todaysTotals.tamasic,
+                    lateNightMeals: lateNightMeals,
+                    calories: todaysTotals.calories,
+                });
+                setReport(result.report);
+            } catch (error) {
+                console.error("Failed to generate daily report:", error);
+                setReport("Could not generate the daily summary.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchReport();
+    }, [todaysTotals]);
+    
+    if (isLoading) {
+        return <Skeleton className="h-6 w-3/4 mx-auto" />
+    }
+    
+    return (
+        <CardDescription className="text-center italic">
+            "{report}"
+        </CardDescription>
+    );
+}
+
 
 export default function Dashboard() {
   const { meals, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode } = useApp();
   const [calorieGoal, setCalorieGoal] = useState(2000);
 
-  const { todaysMeals, todaysTotals, weeklyGunaTotals, weeklyReportData } = useMemo(() => {
+  const { todaysMeals, todaysTotals, weeklyReportData } = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const todaysMeals = meals.filter((meal) => meal.date === todayStr);
 
@@ -32,7 +80,7 @@ export default function Dashboard() {
     const weeklyMeals = meals.filter(meal => weekDates.includes(meal.date));
 
     const dailyTotals: DailyTotals = todaysMeals.reduce(
-      (acc: Omit<DailyTotals, 'mealCount'>, meal) => {
+      (acc: Omit<DailyTotals, 'mealCount' | 'lateNightMealCount'>, meal) => {
         acc.calories += meal.calories;
         acc.protein += meal.protein_g;
         acc.carbs += meal.carbs_g;
@@ -44,18 +92,16 @@ export default function Dashboard() {
       },
       { calories: 0, protein: 0, carbs: 0, fats: 0, sattvic: 0, rajasic: 0, tamasic: 0 }
     );
-    (dailyTotals as DailyTotals).mealCount = todaysMeals.length;
+    dailyTotals.mealCount = todaysMeals.length;
+    dailyTotals.lateNightMealCount = todaysMeals.filter(m => {
+        const hour = getHours(m.timestamp);
+        return hour >= 21 || hour < 4;
+    }).length;
 
-    const weeklyTotals = weeklyMeals.reduce((acc, meal) => {
-        if (meal.guna === 'Sattvic') acc.sattvic += 1;
-        if (meal.guna === 'Rajasic') acc.rajasic += 1;
-        if (meal.guna === 'Tamasic') acc.tamasic += 1;
-        return acc;
-    }, { sattvic: 0, rajasic: 0, tamasic: 0 });
     
     const reportData = getWeeklyReportData(weeklyMeals);
 
-    return { todaysMeals, todaysTotals: dailyTotals, weeklyGunaTotals: weeklyTotals, weeklyReportData: reportData };
+    return { todaysMeals, todaysTotals: dailyTotals, weeklyReportData: reportData };
   }, [meals]);
   
   return (
@@ -66,6 +112,7 @@ export default function Dashboard() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-3xl text-center">Aaj Ka Āhāra (Today's Nourishment)</CardTitle>
+           <DailyReport todaysTotals={todaysTotals} />
            <div className="flex items-center space-x-2 justify-center pt-2">
             <Switch id="silent-mode" checked={silentMode} onCheckedChange={setSilentMode} />
             <Label htmlFor="silent-mode">Silent Mode (No Numbers)</Label>
