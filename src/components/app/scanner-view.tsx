@@ -1,9 +1,9 @@
 'use client';
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Camera, FileImage, Sparkles, Check, Video, CircleUserRound, Zap } from 'lucide-react';
+import { Camera, FileImage, Sparkles, Check, Video, CircleUserRound, Zap, SwitchCamera } from 'lucide-react';
 import { useApp } from '@/context/AppProvider';
 import { analyzeFoodImage } from '@/app/_actions/meal';
 import type { Meal } from '@/lib/types';
@@ -34,28 +34,54 @@ export default function ScannerView() {
   const [mealContext, setMealContext] = useState<'Prasadam' | 'Home-cooked' | 'Outside'>('Home-cooked');
   const [view, setView] = useState<'idle' | 'camera' | 'preview'>('idle');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const { addMeal, dosha } = useApp();
   const { toast } = useToast();
   
+  const stopStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
-    let stream: MediaStream | null = null;
-    const getCameraPermission = async () => {
+    const getCamera = async () => {
       if (view !== 'camera') {
-         if (videoRef.current?.srcObject) {
-            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-            videoRef.current.srcObject = null;
-         }
+        stopStream();
         return;
       }
       
       try {
-        stream = await navigator.mediaDevices.getUserMedia({video: true});
+        // Enumerate devices to find cameras
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        setVideoDevices(cameras);
+        
+        // If a device isn't selected, pick the first one (or user-facing as a default)
+        let deviceId = selectedDeviceId;
+        if (!deviceId && cameras.length > 0) {
+            // Prefer environment (back) camera
+            const backCamera = cameras.find(d => d.label.toLowerCase().includes('back'));
+            deviceId = backCamera?.deviceId || cameras[0].deviceId;
+            setSelectedDeviceId(deviceId);
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+              deviceId: deviceId ? { exact: deviceId } : undefined 
+          }
+        });
+        
         setHasCameraPermission(true);
+        streamRef.current = stream;
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -72,14 +98,13 @@ export default function ScannerView() {
       }
     };
 
-    getCameraPermission();
+    getCamera();
 
+    // Cleanup function
     return () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-    }
-  }, [view, toast]);
+      stopStream();
+    };
+  }, [view, selectedDeviceId, toast, stopStream]);
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -162,6 +187,14 @@ export default function ScannerView() {
     }
   };
 
+  const handleSwitchCamera = () => {
+      if (videoDevices.length > 1) {
+          const currentIndex = videoDevices.findIndex(device => device.deviceId === selectedDeviceId);
+          const nextIndex = (currentIndex + 1) % videoDevices.length;
+          setSelectedDeviceId(videoDevices[nextIndex].deviceId);
+      }
+  };
+
   const resetView = () => {
     setImage(null);
     setAnalysisResult(null);
@@ -213,6 +246,11 @@ export default function ScannerView() {
                     <Button size="lg" onClick={handleCapture} disabled={!hasCameraPermission}>
                         <Zap className="mr-2" /> Capture
                     </Button>
+                    {videoDevices.length > 1 && (
+                         <Button size="lg" variant="outline" onClick={handleSwitchCamera} disabled={!hasCameraPermission}>
+                            <SwitchCamera className="mr-2" /> Switch
+                        </Button>
+                    )}
                     <Button size="lg" variant="outline" onClick={resetView}>
                         Cancel
                     </Button>
