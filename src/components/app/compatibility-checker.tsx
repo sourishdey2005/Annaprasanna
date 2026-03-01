@@ -1,145 +1,84 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles, AlertTriangle, CheckCircle2, XCircle, Plus, Eraser } from 'lucide-react';
-import { checkCompatibility } from '@/app/_actions/meal';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle, Ban, Droplet, Flame, Snowflake, Sparkles } from 'lucide-react';
+
+const incompatiblePairs = [
+    {
+        pair: ['Milk', 'Fish'],
+        reason: 'Obstruction of Srotas (channels) and skin energy.',
+        icon: <Snowflake className="h-4 w-4 text-sky-400" />,
+    },
+    {
+        pair: ['Milk', 'Salt'],
+        reason: 'Slow accumulation of skin-related toxins over time.',
+        icon: <Droplet className="h-4 w-4 text-blue-400" />,
+    },
+    {
+        pair: ['Honey', 'Heating'],
+        reason: 'Heated honey becomes glue-like (Ama) and indigestible.',
+        icon: <Flame className="h-4 w-4 text-orange-500" />,
+    },
+    {
+        pair: ['Lemon', 'Milk'],
+        reason: 'Instant curdling disrupts the digestive fire (Agni).',
+        icon: <AlertCircle className="h-4 w-4 text-yellow-500" />,
+    },
+    {
+        pair: ['Fruit', 'Grain'],
+        reason: 'Fruit digests fast, causing grain to ferment in the gut.',
+        icon: <Ban className="h-4 w-4 text-destructive" />,
+    },
+    {
+        pair: ['Radish', 'Milk'],
+        reason: 'Directly antagonistic properties (Viruddha).',
+        icon: <Sparkles className="h-4 w-4 text-primary" />,
+    },
+];
 
 export default function CompatibilityChecker() {
-    const [foods, setFoods] = useState<string[]>([]);
-    const [currentFood, setCurrentFood] = useState('');
-    const [result, setResult] = useState<{ is_compatible: boolean; reasoning: string; suggestion?: string } | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const { toast } = useToast();
-
-    const addFood = () => {
-        if (currentFood.trim() && !foods.includes(currentFood.trim())) {
-            setFoods([...foods, currentFood.trim()]);
-            setCurrentFood('');
-        }
-    };
-
-    const removeFood = (food: string) => {
-        setFoods(foods.filter((f) => f !== food));
-        setResult(null);
-    };
-
-    const handleCheck = async () => {
-        if (foods.length < 2) {
-            toast({
-                title: "More ingredients needed",
-                description: "Add at least two food items to check their compatibility.",
-            });
-            return;
-        }
-
-        setIsLoading(true);
-        setResult(null);
-        try {
-            const response = await checkCompatibility(foods);
-            if (response.success && response.data) {
-                setResult(response.data);
-            } else {
-                throw new Error(response.error);
-            }
-        } catch (error) {
-            console.error("Compatibility analysis error:", error);
-            toast({
-                variant: "destructive",
-                title: "Analysis Failed",
-                description: "The stars of compatibility are currently aligned in shadow.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const clearAll = () => {
-        setFoods([]);
-        setResult(null);
-    };
-
     return (
-        <Card className="shadow-2xl border-primary/20 bg-gradient-to-br from-background to-accent/20 overflow-hidden">
-            <CardHeader>
-                <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    Viruddha Ahara Checker
-                </CardTitle>
-                <CardDescription>Check for incompatible food combinations (Viruddha Ahara) according to Ayurveda.</CardDescription>
+        <Card className="shadow-2xl border-primary/20 bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden rounded-[2.5rem]">
+            <CardHeader className="pb-4">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-2xl bg-primary/10 text-primary">
+                        <Ban className="h-6 w-6" />
+                    </div>
+                    <CardTitle className="font-headline text-3xl">Viruddha Ahara</CardTitle>
+                </div>
+                <CardDescription className="text-base">
+                    Ancient Vedic wisdom on incompatible food pairings that create <span className="text-primary font-bold">Ama</span> (toxins) in the body.
+                </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex gap-2">
-                    <Input
-                        placeholder="e.g. Milk, Fish, Lemon..."
-                        value={currentFood}
-                        onChange={(e) => setCurrentFood(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addFood()}
-                        className="rounded-xl border-primary/20"
-                    />
-                    <Button onClick={addFood} variant="secondary" className="rounded-xl">
-                        <Plus className="h-4 w-4" />
-                    </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 min-h-[40px]">
-                    {foods.map((food) => (
-                        <Badge key={food} variant="outline" className="pl-3 pr-1 py-1 rounded-full border-primary/30 bg-primary/5 flex items-center gap-1 group">
-                            {food}
-                            <button onClick={() => removeFood(food)} className="hover:text-destructive transition-colors p-1">
-                                <XCircle className="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    ))}
-                    {foods.length === 0 && <span className="text-sm text-muted-foreground italic opacity-50">Add foods to start...</span>}
-                </div>
-
-                <div className="flex gap-3">
-                    <Button className="flex-1 rounded-xl h-12 shadow-lg" onClick={handleCheck} disabled={isLoading || foods.length < 2}>
-                        {isLoading ? "Consulting Vedic Texts..." : "Check Compatibility"}
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={clearAll} title="Clear All">
-                        <Eraser className="h-5 w-5" />
-                    </Button>
-                </div>
-
-                {isLoading && (
-                    <div className="space-y-3 p-6 rounded-2xl bg-accent/20 border border-primary/10">
-                        <Skeleton className="h-6 w-1/3" />
-                        <Skeleton className="h-20 w-full" />
-                    </div>
-                )}
-
-                {result && (
-                    <div className={`p-6 rounded-3xl border animate-in slide-in-from-top-4 duration-500 ${result.is_compatible ? 'bg-green-500/5 border-green-500/20' : 'bg-destructive/5 border-destructive/20'}`}>
-                        <div className="flex items-center gap-3 mb-3">
-                            {result.is_compatible ? (
-                                <CheckCircle2 className="h-6 w-6 text-green-600" />
-                            ) : (
-                                <AlertTriangle className="h-6 w-6 text-destructive" />
-                            )}
-                            <h4 className={`font-bold text-lg ${result.is_compatible ? 'text-green-700' : 'text-destructive'}`}>
-                                {result.is_compatible ? 'Harmonious Combination' : 'Incompatible Combination'}
-                            </h4>
-                        </div>
-
-                        <p className="text-muted-foreground leading-relaxed mb-4 italic">
-                            "{result.reasoning}"
-                        </p>
-
-                        {result.suggestion && (
-                            <div className="pt-4 border-t border-current/10">
-                                <span className="text-xs font-bold uppercase tracking-widest opacity-50">Master's Suggestion</span>
-                                <p className="text-sm mt-1">{result.suggestion}</p>
+            <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {incompatiblePairs.map((item, index) => (
+                        <div
+                            key={index}
+                            className="p-5 rounded-3xl bg-accent/20 border border-primary/5 hover:border-primary/20 transition-all group"
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-headline font-bold text-lg">{item.pair[0]}</span>
+                                    <span className="text-xs font-black opacity-30 tracking-widest">+</span>
+                                    <span className="font-headline font-bold text-lg">{item.pair[1]}</span>
+                                </div>
+                                <div className="h-8 w-8 rounded-full bg-background flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                    {item.icon}
+                                </div>
                             </div>
-                        )}
-                    </div>
-                )}
+                            <p className="text-sm text-muted-foreground leading-snug">
+                                {item.reason}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-8 p-6 rounded-3xl bg-primary/5 border border-primary/10 text-center">
+                    <p className="text-xs uppercase tracking-[0.2em] font-bold text-primary/60 mb-1">Ritual Insight</p>
+                    <p className="text-sm italic text-muted-foreground">
+                        "Eating incompatible foods is like fighting a war within one's own belly. Respect your Agni."
+                    </p>
+                </div>
             </CardContent>
         </Card>
     );
