@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useMeals } from '@/hooks/use-meals';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { Meal, Dosha, Sankalpa } from '@/lib/types';
@@ -15,6 +15,8 @@ interface AppContextType {
   setSankalpa: (sankalpa: Sankalpa) => void;
   silentMode: boolean;
   setSilentMode: (silent: boolean) => void;
+  isOnboarded: boolean;
+  setIsOnboarded: (onboarded: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -24,9 +26,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dosha, setDosha] = useLocalStorage<Dosha>('user-dosha', 'Tridoshic');
   const [sankalpa, setSankalpa] = useLocalStorage<Sankalpa>('user-sankalpa', 'increase-sattvic');
   const [silentMode, setSilentMode] = useLocalStorage<boolean>('silent-mode', false);
+  const [isOnboarded, setIsOnboarded] = useLocalStorage<boolean>('onboarded', false);
+
+  const value = useMemo(() => ({
+    meals,
+    addMeal,
+    isLoading,
+    error,
+    dosha,
+    setDosha,
+    sankalpa,
+    setSankalpa,
+    silentMode,
+    setSilentMode,
+    isOnboarded,
+    setIsOnboarded
+  }), [meals, addMeal, isLoading, error, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode, isOnboarded, setIsOnboarded]);
 
   return (
-    <AppContext.Provider value={{ meals, addMeal, isLoading, error, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );

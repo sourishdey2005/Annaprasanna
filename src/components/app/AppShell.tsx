@@ -9,6 +9,7 @@ import ScannerView from '@/components/app/scanner-view';
 import HistoryView from '@/components/app/history-view';
 import { Home, Scan, History, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OnboardingDialog } from '@/components/app/onboarding';
 
 export function AppShell() {
   const { isLoading, error } = useApp();
@@ -40,6 +41,7 @@ export function AppShell() {
         </div>
       )}
       <Tabs defaultValue="dashboard" className="w-full">
+        <OnboardingDialog />
         <div className="flex justify-center border-b sticky top-16 md:top-0 bg-background/95 backdrop-blur-sm z-10">
           <TabsList className="grid w-full max-w-lg grid-cols-3 m-4">
             <TabsTrigger value="dashboard">

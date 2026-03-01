@@ -14,8 +14,8 @@ import { Landmark, Home, UtensilsCrossed, Clock, Leaf, Sparkles, Flame, Droplets
 import { useApp } from '@/context/AppProvider';
 
 interface MealCardProps {
-  meal: Meal;
-  defaultOpen?: boolean;
+  readonly meal: Meal;
+  readonly defaultOpen?: boolean;
 }
 
 const GUNA_COLORS = {
@@ -41,30 +41,30 @@ function Stat({ label, value, unit }: { label: string; value: number; unit: stri
 }
 
 function WisdomPill({ icon, title, text }: { icon: React.ReactNode, title: string, text: string | undefined | null }) {
-    if (!text) return null;
-    return (
-        <div className="flex items-start gap-4 rounded-lg border bg-background p-4">
-            <div className="text-primary">{icon}</div>
-            <div>
-                <p className="font-semibold">{title}</p>
-                <p className="text-sm text-muted-foreground italic">"{text}"</p>
-            </div>
-        </div>
-    );
+  if (!text) return null;
+  return (
+    <div className="flex items-start gap-4 rounded-lg border bg-background p-4">
+      <div className="text-primary">{icon}</div>
+      <div>
+        <p className="font-semibold">{title}</p>
+        <p className="text-sm text-muted-foreground italic">"{text}"</p>
+      </div>
+    </div>
+  );
 }
 
 const COOKING_METHOD_ICONS = {
-    Fried: <Flame className="h-4 w-4" />,
-    Steamed: <Droplets className="h-4 w-4" />,
-    Roasted: <Wind className="h-4 w-4" />,
-    Raw: <Leaf className="h-4 w-4" />,
-    Other: <CookingPot className="h-4 w-4" />
+  Fried: <Flame className="h-4 w-4" />,
+  Steamed: <Droplets className="h-4 w-4" />,
+  Roasted: <Wind className="h-4 w-4" />,
+  Raw: <Leaf className="h-4 w-4" />,
+  Other: <CookingPot className="h-4 w-4" />
 }
 
 export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
   const { silentMode } = useApp();
   const gunaColor = GUNA_COLORS[meal.guna] || GUNA_COLORS.Tamasic;
-  
+
   return (
     <Card className="overflow-hidden bg-secondary/50">
       <Accordion type="single" collapsible defaultValue={defaultOpen ? 'item-1' : ''}>
@@ -82,8 +82,8 @@ export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
               )}
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
-                    {meal.meal_context && MEAL_CONTEXT_ICONS[meal.meal_context]}
-                    <h3 className="font-semibold text-lg">{meal.food_name}</h3>
+                  {meal.meal_context && MEAL_CONTEXT_ICONS[meal.meal_context]}
+                  <h3 className="font-semibold text-lg">{meal.food_name}</h3>
                 </div>
                 {!silentMode && <p className="text-sm text-muted-foreground">{meal.calories} kcal</p>}
               </div>
@@ -100,18 +100,19 @@ export function MealCard({ meal, defaultOpen = false }: MealCardProps) {
                   <Stat label="Fats" value={meal.fats_g} unit="grams" />
                 </div>
               )}
-               <div className="space-y-2">
+              <div className="space-y-2">
                 <WisdomPill icon={<Sparkles />} title="Vedic Tip" text={meal.vedic_tip} />
                 <WisdomPill icon={<Leaf />} title="Dosha Suggestion" text={meal.dosha_suggestion} />
                 <WisdomPill icon={<Clock />} title="Time Wisdom" text={meal.time_of_day_wisdom} />
                 <WisdomPill icon={<ScanEye />} title="Ingredient Breakdown" text={meal.ingredient_breakdown} />
                 <WisdomPill icon={<Scale />} title="Portion Awareness" text={meal.portion_awareness} />
                 <WisdomPill icon={<Snowflake />} title="Seasonal Awareness" text={meal.seasonal_awareness} />
+                <WisdomPill icon={<Sparkles className="animate-pulse" />} title="Post-Meal Reflection" text={meal.mood_after_meal ? `You felt ${meal.mood_after_meal.toLowerCase()} after this meal.` : null} />
                 {meal.cooking_method && (
-                  <WisdomPill 
-                    icon={COOKING_METHOD_ICONS[meal.cooking_method] || <CookingPot className="h-4 w-4" />} 
+                  <WisdomPill
+                    icon={COOKING_METHOD_ICONS[meal.cooking_method] || <CookingPot className="h-4 w-4" />}
                     title={`${meal.cooking_method} Method Insight`}
-                    text={meal.cooking_method_insight} 
+                    text={meal.cooking_method_insight}
                   />
                 )}
               </div>
