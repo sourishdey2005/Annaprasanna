@@ -48,10 +48,13 @@ export function AppShell() {
               <Home className="mr-2 h-4 w-4" />
               Home
             </TabsTrigger>
-            <TabsTrigger value="scan">
+            <a
+              href="https://annaprasana.vercel.app/"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all hover:bg-background hover:text-foreground hover:shadow-sm"
+            >
               <Scan className="mr-2 h-4 w-4" />
               Scan
-            </TabsTrigger>
+            </a>
             <TabsTrigger value="history">
               <History className="mr-2 h-4 w-4" />
               History
