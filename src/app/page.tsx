@@ -111,9 +111,11 @@ export default function LandingPage() {
                 >
                   <Button asChild size="lg" className="text-xl px-10 py-8 rounded-3xl shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 transition-all group overflow-hidden relative">
                     <Link href="/app" className="relative z-10">
-                      Enter the App <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                      <span className="relative z-20 flex items-center">
+                        Enter the App <ArrowRight className="ml-2 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
                     </Link>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Button>
                   <Button variant="outline" size="lg" className="text-xl px-10 py-8 rounded-3xl border-2 hover:bg-accent/30 transition-all">
                     <Link href="#features">Learn More</Link>
@@ -270,8 +272,10 @@ export default function LandingPage() {
               Join a community of seekers reclaiming the ritual of their plate. Secure, private, and deeply meaningful.
             </p>
             <Button asChild size="lg" className="text-2xl px-16 py-10 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(var(--primary-rgb),0.5)] hover:scale-105 hover:shadow-primary/60 transition-all duration-500 bg-primary group overflow-hidden relative">
-              <Link href="/app" className="relative z-10">Start Your Journey Today</Link>
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Link href="/app" className="relative z-10">
+                <span className="relative z-20">Start Your Journey Today</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-primary opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+              </Link>
             </Button>
 
             <div className="mt-16 flex items-center justify-center gap-4 text-sm font-bold tracking-[0.2em] text-muted-foreground/40 uppercase">
