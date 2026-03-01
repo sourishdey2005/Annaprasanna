@@ -95,6 +95,9 @@ function DailyReport({ todaysTotals }: { todaysTotals: DailyTotals }) {
 
 import CompatibilityChecker from './compatibility-checker';
 import MindfulTimer from './mindful-timer';
+import VedicMandalaInsights from './vedic-mandala-insights';
+import VedicWaterRitual from './vedic-water-ritual';
+import TapasFastingTimer from './tapas-fasting-timer';
 
 export default function Dashboard() {
   const { meals, dosha, setDosha, sankalpa, setSankalpa, silentMode, setSilentMode } = useApp();
@@ -208,25 +211,11 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="shadow-xl border-primary/5">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">Daily Calorie Flow</CardTitle>
-            <CardDescription>See when you consume calories throughout the day.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DailyCalorieFlowChart meals={todaysMeals} silentMode={silentMode} />
-          </CardContent>
-        </Card>
-        <Card className="shadow-xl border-primary/5">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">Meal Timing Clock</CardTitle>
-            <CardDescription>Your meals on a 24-hour cycle.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MealTimingClock meals={todaysMeals} />
-          </CardContent>
-        </Card>
+        <TapasFastingTimer />
+        <VedicWaterRitual />
       </div>
+
+      <VedicMandalaInsights meals={meals} silentMode={silentMode} />
 
 
       <Card className="shadow-2xl border-primary/10 bg-gradient-to-r from-primary/5 via-background to-primary/5">
